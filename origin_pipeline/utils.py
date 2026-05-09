@@ -55,13 +55,15 @@ def compute_metrics(y_true, y_pred_logits):
         "F1": f1
     }
 
-def init_model(model, config):
-    if model.__name__ == "EEGNet":
-        return model(
-                    chans=config['model']['chans'],
-                    num_classes=config['model']['num_classes'],
-                    time_point=config['model']['time_point']
-                    ).to(config['train']['device'])
+def init_model(model_class, config):
+    if model_class.__name__ == "EEGNet":
+        return model_class(
+            chans=config['model']['chans'],
+            num_classes=config['model']['num_classes'],
+            time_point=config['model']['time_point']
+        ).to(config['train']['device'])
+    elif model_class.__name__ == "iTransformer":
+        return model_class(config).to(config['train']['device'])
 
 
 
