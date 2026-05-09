@@ -47,6 +47,9 @@ def train(  model,
     best_val_acc = None
     best_model = None
     bad_epochs = 0
+    
+    train_loss_sum = 0.0
+    train_num = 0
 
     for epoch in tqdm(range(config['train'].get("epochs", 100)), desc="Epochs", position=0, leave=False):
         model.train()
@@ -83,7 +86,10 @@ def train(  model,
         # ================= 验证阶段 =================
         with torch.no_grad():
             total_metrics = evaluate(
-
+                                    model       = model,
+                                    val_loader  = val_loader,
+                                    criterion   = criterion,
+                                    device      = device
                                  )
         
         val_loss    = total_metrics["Loss"]

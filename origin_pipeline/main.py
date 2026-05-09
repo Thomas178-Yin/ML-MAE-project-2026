@@ -3,10 +3,15 @@ import sys
 import torch
 import yaml
 import argparse
+import pandas as pd
 
 from utils import set_seed
 from dataset import get_dataloader
 from model.model_EEGNet import EEGNet
+from model.model_iTransformer import iTransformer
+from model.model_PatchTST import PatchTST
+from model.model_TimesNet import TimesNet
+from model.model_EEGGRU import EEGGRU
 from train import train, test
 
 #——————————————————
@@ -16,14 +21,19 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 add_path = os.path.join(BASE_DIR, "origin_pipeline")
 sys.path.append(add_path)
 
-DATASET_LIST = ['MDD', 'BCIC2A', 'CHINESE', 'SEED', 'SLEEP']
+# code-base
+code_base_path = os.path.join(BASE_DIR, "model", "code_base")
+sys.path.append(code_base_path)
+
+
 #——————————————————
 # 选择数据集
 #——————————————————
+DATASET_LIST = ['MDD', 'BCIC2A', 'CHINESE', 'SEED', 'SLEEP']
 dataset_id = 0
 dataset_name = DATASET_LIST[dataset_id]
 print
-MODEL_LIST = [EEGNet]
+MODEL_LIST = [EEGNet, EEGGRU, iTransformer, PatchTST, TimesNet]
 #——————————————————
 # 选择模型
 #——————————————————
@@ -84,20 +94,29 @@ print(f"  Test:  {len(dataloader_test)}")
 best_model = train(
                    model            = model,
                    train_loader     = dataloader_train,
-                   val_loader       = dataloader_val,     
+                   val_loader       = dataloader_val, 
+                   dataset          = dataset_name,    
                    config           = config,
                    seed             = seed,
                     )
 
-total_metrics = test(
+predictions = test(
                     best_model      = best_model,
                     model           = model,    
                     config          = config, 
-                    seed            = seed,
-
+                    test_loader     = dataloader_test,
+                    # seed            = seed,
                     )
 
 # 保存模型
 save_path = os.path.join(args.model_save_dir, f"None.pt")
 torch.save(best_model, save_path)
 print(f"[✔] Model saved to {save_path}")
+
+# ————————————————————
+# 保存预测结果为 CSV
+# ————————————————————
+csv_save_path = os.path.join(args.model_save_dir, f"predictions_{dataset_name}_{model_name}.csv")
+df_preds = pd.DataFrame({"Prediction": predictions})
+df_preds.to_csv(csv_save_path, index=False)
+print(f"[✔] Predictions saved to {csv_save_path}")
