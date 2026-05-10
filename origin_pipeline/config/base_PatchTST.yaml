@@ -7,12 +7,12 @@ train:
   weight_decay: 0.0001
   epochs: 100
   early_stop_patience: 15
-  early_stop_min_delta: 0.005
+  early_stop_min_delta: 0.00001
 
 model:
   task_name: 'classification'
   seq_len: 200                 # T:
-  enc_in: 22                   # N:
+  enc_in: 20                   # N:
   num_class: 2                 # 类别数
 
   pred_len: 0                  # 分类任务占位

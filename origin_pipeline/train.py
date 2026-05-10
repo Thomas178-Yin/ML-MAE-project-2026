@@ -5,7 +5,7 @@ from tqdm import tqdm
 import torch.optim as optim
 from datetime import datetime
 from torch.utils.tensorboard import SummaryWriter
-from utils import compute_metrics, init_model
+from util import compute_metrics, init_model
 
 
 def train(  model,
@@ -115,7 +115,7 @@ def train(  model,
             break
 
     writer.close()
-    return best_model
+    return best_model, best_val_acc
 
 def evaluate(model, val_loader, criterion, device):
     model.eval()
@@ -147,15 +147,11 @@ def evaluate(model, val_loader, criterion, device):
 
     return metrics
 
-def test(best_model_state, model_class, test_loader, config):
+def test(best_model_state, model, test_loader, config):
     device = config['train']['device']
     
     # 实例化模型
-    model = model_class(
-        chans=config['model']['chans'],
-        time_point=config['model']['time_point'],
-        num_classes=config['model']['num_classes']
-    )
+    model = init_model(model, config)
     
     # 挂载最优权重
     model.load_state_dict(best_model_state['model'])
