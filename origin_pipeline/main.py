@@ -5,15 +5,6 @@ import yaml
 import argparse
 import pandas as pd
 
-from utils import set_seed
-from dataset import get_dataloader
-from model.model_EEGNet import EEGNet
-from model.model_iTransformer import iTransformer
-from model.model_PatchTST import PatchTST
-from model.model_TimesNet import TimesNet
-from model.model_EEGGRU import EEGGRU
-from train import train, test
-
 #——————————————————
 # 解决导入路径
 #——————————————————
@@ -22,8 +13,34 @@ add_path = os.path.join(BASE_DIR, "origin_pipeline")
 sys.path.append(add_path)
 
 # code-base
-code_base_path = os.path.join(BASE_DIR, "model", "code_base")
+code_base_path = os.path.join(BASE_DIR, "models", "code_base")
 sys.path.append(code_base_path)
+
+# layers
+layers_path = os.path.join(BASE_DIR, "models", "code_base", "layers")
+sys.path.append(layers_path)
+
+# models
+models_path = os.path.join(BASE_DIR, "models", "code_base", "model")
+sys.path.append(models_path)
+
+# model_
+model_path = os.path.join(BASE_DIR, "models")
+sys.path.append(model_path)
+
+# utils
+utils_path = os.path.join(BASE_DIR, "models", "code_base", "utils")
+sys.path.append(models_path)
+
+from util import set_seed
+from dataset import get_dataloader
+from models.model_EEGNet import EEGNet
+from models.model_iTransformer import iTransformer
+from models.model_PatchTST import PatchTST
+from models.model_TimesNet import TimesNet
+from models.model_EEGGRU import EEGGRU
+from train import train, test
+
 
 
 #——————————————————
@@ -37,7 +54,7 @@ MODEL_LIST = [EEGNet, EEGGRU, iTransformer, PatchTST, TimesNet]
 #——————————————————
 # 选择模型
 #——————————————————
-model_id = 0
+model_id = 2
 model = MODEL_LIST[model_id]
 model_name = MODEL_LIST[model_id].__name__
 print(model_name)
@@ -52,7 +69,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--data_dir', type=str, default=DATASET_PATH , help='data_dir')
 
-parser.add_argument('--model_save_dir', type=str, default="None/%s" % dataset_name, help='model save dir')
+parser.add_argument('--model_save_dir', type=str, default="E:/G2/machine_learning/team_Project/ML_MAE_project_2026/origin_pipeline/results/%s/%s" % (dataset_name, model_name), help='model save dir')
 args = parser.parse_args()
 print(args)
 
@@ -91,17 +108,17 @@ print(f"  Train: {len(dataloader_train)}")
 print(f"  Val:   {len(dataloader_val)}")
 print(f"  Test:  {len(dataloader_test)}")
 
-best_model = train(
-                   model            = model,
-                   train_loader     = dataloader_train,
-                   val_loader       = dataloader_val, 
-                   dataset          = dataset_name,    
-                   config           = config,
-                   seed             = seed,
-                    )
+best_model, best_val_acc = train(
+                            model            = model,
+                            train_loader     = dataloader_train,
+                            val_loader       = dataloader_val, 
+                            dataset          = dataset_name,    
+                            config           = config,
+                            seed             = seed,
+                                )
 
 predictions = test(
-                    best_model      = best_model,
+                    best_model_state= best_model,
                     model           = model,    
                     config          = config, 
                     test_loader     = dataloader_test,
@@ -109,7 +126,7 @@ predictions = test(
                     )
 
 # 保存模型
-save_path = os.path.join(args.model_save_dir, f"None.pt")
+save_path = os.path.join(args.model_save_dir, f"best_model.pt")
 torch.save(best_model, save_path)
 print(f"[✔] Model saved to {save_path}")
 

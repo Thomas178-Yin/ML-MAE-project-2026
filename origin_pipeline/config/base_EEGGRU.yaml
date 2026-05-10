@@ -10,7 +10,7 @@ train:
   early_stop_min_delta: 0.005
 
 model:
-  input_channels: 22    # N
+  input_channels: 20    # N
   time_points: 200      # T
   num_classes: 2        # 分类类别数
   hidden_size: 64       # GRU 隐藏单元数

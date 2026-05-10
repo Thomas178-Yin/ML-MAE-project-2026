@@ -12,7 +12,7 @@ class TrainDataset(Dataset):
         with h5py.File(self.h5_path, "r") as f:
             self.x = torch.tensor(f["X"][()], dtype=torch.float32)
             self.y = torch.tensor(f["y"][()], dtype=torch.long)
-
+        print(self.x.shape)
         assert len(self.x) == len(self.y), "X and y length mismatch"
 
     def __len__(self):

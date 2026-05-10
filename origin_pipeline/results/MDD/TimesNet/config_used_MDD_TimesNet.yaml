@@ -1,0 +1,25 @@
+dataset:
+  batch_size: 32
+model:
+  c_out: 2
+  d_ff: 64
+  d_model: 64
+  dropout: 0.1
+  e_layers: 2
+  embed: timeF
+  enc_in: 20
+  freq: h
+  label_len: 0
+  num_class: 2
+  num_kernels: 6
+  pred_len: 0
+  seq_len: 200
+  task_name: classification
+  top_k: 5
+train:
+  device: cuda:0
+  early_stop_min_delta: 0.005
+  early_stop_patience: 15
+  epochs: 100
+  lr: 0.001
+  weight_decay: 0.0001
