@@ -14,6 +14,9 @@ class TimesNet(nn.Module):
         self.configs = ConfigWrapper(config_dict['model'])
         self.model = TimesNetModel(self.configs)
 
+        for p in self.model.parameters():
+            p.requires_grad = True
+
     def forward(self, x):
         x = x.permute(0,2,1)
         B, T, N = x.shape

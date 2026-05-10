@@ -1,4 +1,6 @@
+import os
 import random
+import sys
 
 import numpy as np
 import torch
@@ -62,13 +64,38 @@ def init_model(model_class, config):
             num_classes=config['model']['num_classes'],
             time_point=config['model']['time_point']
         ).to(config['train']['device'])
-    elif model_class.__name__ in ["EEGGRU", "iTransformer", "PatchTST", "TimesNet"]:
+    elif model_class.__name__ in ["EEGGRU", "iTransformer", "PatchTST", "TimesNet", 'CBraMod']:
         return model_class(config).to(config['train']['device'])
     else:
         raise ValueError(f"[Error] 未知的模型: {model_class.__name__}，请在 utils.py 的 init_model 中添加对应的初始化逻辑！")
 
+#——————————————————————————————————————————————————————
+# 解决导入路径解决
+#——————————————————————————————————————————————————————
+def path_solution(path):
+    BASE_DIR = os.path.dirname(os.path.abspath(path))
+    add_path = os.path.join(BASE_DIR, "origin_pipeline")
+    sys.path.append(add_path)
 
+    # code-base
+    code_base_path = os.path.join(BASE_DIR, "models", "code_base")
+    sys.path.append(code_base_path)
 
+    # layers
+    layers_path = os.path.join(BASE_DIR, "models", "code_base", "layers")
+    sys.path.append(layers_path)
+
+    # models
+    models_path = os.path.join(BASE_DIR, "models", "code_base", "model")
+    sys.path.append(models_path)
+
+    # model_
+    model_path = os.path.join(BASE_DIR, "models")
+    sys.path.append(model_path)
+
+    # utils
+    utils_path = os.path.join(BASE_DIR, "models", "code_base", "utils")
+    sys.path.append(models_path)
 
 
 

@@ -47,12 +47,14 @@ def get_dataloader(args, batch_size, seed):
     val_data = TrainDataset(val_path)   
     test_data = TestDataset(test_path)
 
-    # print("train data shape")
-    # print(train_data.shape)
+    print("data shape:")
+    print(f"  train X: {tuple(train_data.x.shape)}, y: {tuple(train_data.y.shape)}")
+    print(f"  val   X: {tuple(val_data.x.shape)}, y: {tuple(val_data.y.shape)}")
+    print(f"  test  X: {tuple(test_data.x.shape)}")
 
     train_loader = DataLoader(train_data,   batch_size = batch_size,    shuffle=True)
     val_loader = DataLoader(val_data,       batch_size = batch_size,    shuffle=False)
-    test_loader = DataLoader(test_data,     batch_size = 1,             shuffle=False)
+    test_loader = DataLoader(test_data,     batch_size = 4,             shuffle=False)
 
     return train_loader, val_loader, test_loader
 

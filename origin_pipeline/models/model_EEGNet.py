@@ -32,6 +32,18 @@ class EEGNet(nn.Module):  # EEGNet-8,2
 
         self.classifier = nn.Linear(self.embed_dim, num_classes)
 
+        for p in self.block1.parameters():
+            p.requires_grad = True
+
+        for p in self.block2.parameters():
+            p.requires_grad = True
+
+        for p in self.block3.parameters():
+            p.requires_grad = True
+
+        for p in self.classifier.parameters():
+            p.requires_grad = True
+
     def _apply_max_norm(self, layer, max_norm):
         for name, param in layer.named_parameters():
             if 'weight' in name:

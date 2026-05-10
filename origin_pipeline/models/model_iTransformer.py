@@ -21,9 +21,12 @@ class iTransformer(nn.Module):
         # 实例化iTransformer
         self.model = iTransformerModel(self.configs)
         
+        for p in self.model.parameters():
+            p.requires_grad = True
+            
     def forward(self, x):
         """
-        输入 x shape: [batch_size, T, N] (B, 序列长度/时间点, 通道数/特征数)
+        输入 x.T shape: [batch_size, T, N] (B, 序列长度/时间点, 通道数/特征数)
         """
         x = x.permute(0,2,1)
         B, T, N = x.shape

@@ -14,9 +14,12 @@ class PatchTST(nn.Module):
         self.configs = ConfigWrapper(config_dict['model'])
         self.model = PatchTSTModel(self.configs)
 
+        for p in self.model.parameters():
+            p.requires_grad = True
+            
     def forward(self, x):
         """
-        输入 x shape: [B, T, N]
+        输入 x.T shape: [B, T, N]
         """
         x = x.permute(0,2,1)
         return self.model(x, x_mark_enc=None, x_dec=None, x_mark_dec=None)
