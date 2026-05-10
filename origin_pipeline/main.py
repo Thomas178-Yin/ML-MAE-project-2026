@@ -60,7 +60,7 @@ print(args)
 os.makedirs(args.model_save_dir, exist_ok=True)
 
 project_root = os.path.dirname(os.path.dirname(__file__))  # 适用于模块化项目
-config_path = os.path.join(project_root, "origin_pipline", "config", f"base_{model_name}.yaml")
+config_path = os.path.join(project_root, "origin_pipeline", "config", f"base_{model_name}.yaml")
 
 with open(config_path, "r", encoding='utf-8') as f:
     config = yaml.safe_load(f)
