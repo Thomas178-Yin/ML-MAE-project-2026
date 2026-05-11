@@ -5,56 +5,33 @@ import yaml
 import argparse
 import pandas as pd
 
+from util import set_seed, path_solution, config_fix, val_matrix
 #——————————————————
 # 解决导入路径
 #——————————————————
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-add_path = os.path.join(BASE_DIR, "origin_pipeline")
-sys.path.append(add_path)
+path_solution(__file__)
 
-# code-base
-code_base_path = os.path.join(BASE_DIR, "models", "code_base")
-sys.path.append(code_base_path)
-
-# layers
-layers_path = os.path.join(BASE_DIR, "models", "code_base", "layers")
-sys.path.append(layers_path)
-
-# models
-models_path = os.path.join(BASE_DIR, "models", "code_base", "model")
-sys.path.append(models_path)
-
-# model_
-model_path = os.path.join(BASE_DIR, "models")
-sys.path.append(model_path)
-
-# utils
-utils_path = os.path.join(BASE_DIR, "models", "code_base", "utils")
-sys.path.append(models_path)
-
-from util import set_seed
 from dataset import get_dataloader
 from models.model_EEGNet import EEGNet
 from models.model_iTransformer import iTransformer
 from models.model_PatchTST import PatchTST
 from models.model_TimesNet import TimesNet
 from models.model_EEGGRU import EEGGRU
+from models.model_CBraMod import CBraMod
 from train import train, test
-
-
 
 #——————————————————
 # 选择数据集
 #——————————————————
 DATASET_LIST = ['MDD', 'BCIC2A', 'CHINESE', 'SEED', 'SLEEP']
-dataset_id = 0
+dataset_id = 2
 dataset_name = DATASET_LIST[dataset_id]
-print
-MODEL_LIST = [EEGNet, EEGGRU, iTransformer, PatchTST, TimesNet]
+
+MODEL_LIST = [EEGNet, EEGGRU, iTransformer, PatchTST, TimesNet, CBraMod]
 #——————————————————
 # 选择模型
 #——————————————————
-model_id = 2
+model_id = -1
 model = MODEL_LIST[model_id]
 model_name = MODEL_LIST[model_id].__name__
 print(model_name)
@@ -86,6 +63,9 @@ with open(config_path, "r", encoding='utf-8') as f:
     # 使用列表推导式 + join() 安全拼接, 
     output = "\n".join(f"{key}: {config.get(key, '')}" for key in keys)
     print(output)
+
+# 针对数据集修复config参数
+config = config_fix(config, dataset_name, model_name)
 
 # 保存yaml文件到模型保存路径 方便查看
 save_config_path = os.path.join(args.model_save_dir, f"config_used_{dataset_name}_{model_name}.yaml")
@@ -137,3 +117,13 @@ csv_save_path = os.path.join(args.model_save_dir, f"predictions_{dataset_name}_{
 df_preds = pd.DataFrame({"Prediction": predictions})
 df_preds.to_csv(csv_save_path, index=False)
 print(f"[✔] Predictions saved to {csv_save_path}")
+
+# ————————————————————
+# 汇总val结果
+# ————————————————————
+val_matrix(
+    val_acc = best_val_acc,
+    model_name = model_name,
+    dataset_name = dataset_name,
+    model_save_dir = args.model_save_dir
+)

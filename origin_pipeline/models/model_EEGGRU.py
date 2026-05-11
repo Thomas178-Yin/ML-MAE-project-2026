@@ -33,6 +33,13 @@ class EEGGRU(nn.Module):
             nn.Linear(conf.hidden_size // 2, conf.num_classes)
         )
 
+        for p in self.gru.parameters():
+            p.requires_grad = True
+        
+        for p in self.fc.parameters():
+            p.requires_grad = True
+        
+        
     def forward(self, x):
         # 输入 x 形状: (Batch, Channels, Time)
         # 转换为 GRU 期望的形状: (Batch, Time, Channels)

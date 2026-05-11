@@ -23,8 +23,8 @@ def train(  model,
 
     model = init_model(model, config)
 
-    for p in model.parameters():
-            p.requires_grad = True
+    # for p in model.parameters():
+    #         p.requires_grad = True
 
     optimizer = optim.Adam(
                         list(model.parameters()),
