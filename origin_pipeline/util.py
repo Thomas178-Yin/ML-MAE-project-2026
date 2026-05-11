@@ -65,7 +65,7 @@ def init_model(model_class, config):
             num_classes=config['model']['num_classes'],
             time_point=config['model']['time_point']
         ).to(config['train']['device'])
-    elif model_class.__name__ in ["EEGGRU", "iTransformer", "PatchTST", "TimesNet", 'CBraMod']:
+    elif model_class.__name__ in ["EEGGRU", "iTransformer", "PatchTST", "TimesNet", 'CBraMod', "EEGPT", "LaBraM"]:
         return model_class(config).to(config['train']['device'])
     else:
         raise ValueError(f"[Error] 未知的模型: {model_class.__name__}，请在 utils.py 的 init_model 中添加对应的初始化逻辑！")
@@ -150,6 +150,31 @@ def config_fix(config, dataset_name, model_name):
         
         print(f"[*] CBraMod detected: Auto-calculated patch_num={config['model']['patch_num']} (Total Time={meta['time']}).")
     
+    elif model_name == 'LaBraM':
+        config['model']['ch_num'] = meta['channels']
+        config['model']['num_classes'] = meta['classes']
+        config['model']['in_dim'] = 200
+        config['model']['patch_num'] = meta['time'] // 200
+        config['model']['EEG_size'] = meta['time'] # 总长度
+        print(f"[*] LaBraM: Auto-calculated patch_num={config['model']['patch_num']}")
+
+    elif model_name == 'EEGPT':
+        config['model']['in_channels'] = meta['channels']
+        config['model']['class_num'] = meta['classes']
+        
+        # 计算 desired_time_len =
+        input_T = meta['time']
+        desired_time_len = int((input_T / 200) * 256)
+        
+        config['model']['desired_time_len'] = desired_time_len
+        config['model']['T_all'] = input_T  # 记录原始长度备用
+        
+        target_chans = len(config['model']['use_channels_names'])
+        # 保证骨干网络用插值后的目标长度初始化
+        config['model']['img_size'] = [target_chans, desired_time_len] 
+        
+        print(f"[*] EEGPT: Time Interpolation [{input_T} -> {desired_time_len}] "
+              f"({input_T}/200*256). Target Chans: {target_chans}")
     # 常规模型处理
     elif model_name in key_mapping:
         ch_key, time_key, cls_key = key_mapping[model_name]
