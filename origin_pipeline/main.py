@@ -18,20 +18,22 @@ from models.model_PatchTST import PatchTST
 from models.model_TimesNet import TimesNet
 from models.model_EEGGRU import EEGGRU
 from models.model_CBraMod import CBraMod
+from models.model_LaBraM import LaBraM
+from models.model_EEGPT import EEGPT
 from train import train, test
 
 #——————————————————
 # 选择数据集
 #——————————————————
 DATASET_LIST = ['MDD', 'BCIC2A', 'CHINESE', 'SEED', 'SLEEP']
-dataset_id = 2
+dataset_id = 3
 dataset_name = DATASET_LIST[dataset_id]
 
-MODEL_LIST = [EEGNet, EEGGRU, iTransformer, PatchTST, TimesNet, CBraMod]
+MODEL_LIST = [EEGNet, EEGGRU, iTransformer, PatchTST, TimesNet, CBraMod, LaBraM, EEGPT]
 #——————————————————
 # 选择模型
 #——————————————————
-model_id = -1
+model_id = -2
 model = MODEL_LIST[model_id]
 model_name = MODEL_LIST[model_id].__name__
 print(model_name)
