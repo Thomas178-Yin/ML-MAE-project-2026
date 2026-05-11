@@ -1,0 +1,23 @@
+dataset:
+  batch_size: 32
+
+train:
+  device: "cuda:0"
+  lr: 0.001
+  weight_decay: 0.0001
+  epochs: 100
+  early_stop_patience: 15
+  early_stop_min_delta: 0.00001
+
+model:
+  ch_num: 22
+  in_dim: 200    
+  out_dim: 200      
+  dim_feedforward: 800
+  num_classes: 4        # 分类类别数
+  d_model: 200      
+  n_layer: 12         
+  nhead: 8
+  patch_num: 4
+  patch_size: 200
+  weight_path: "Y:/xihua/2603/EEG/checkpoints/CBraMod_pretrained_weights.pth"
