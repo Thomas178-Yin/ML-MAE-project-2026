@@ -24,7 +24,7 @@ from train import train, test
 # 选择数据集
 #——————————————————
 DATASET_LIST = ['MDD', 'BCIC2A', 'CHINESE', 'SEED', 'SLEEP']
-dataset_id = 1
+dataset_id = 2
 dataset_name = DATASET_LIST[dataset_id]
 
 MODEL_LIST = [EEGNet, EEGGRU, iTransformer, PatchTST, TimesNet, CBraMod]
