@@ -7,7 +7,7 @@ train:
   weight_decay: 0.0001
   epochs: 100
   early_stop_patience: 15
-  early_stop_min_delta: 0.00001s
+  early_stop_min_delta: 0.00001
 
 model:
   task_name: 'classification'

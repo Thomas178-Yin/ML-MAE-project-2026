@@ -1,10 +1,8 @@
 import os
-
 import torch
 import torch.nn as nn
 
-from einops.layers.torch import Rearrange
-
+# 请根据实际路径调整导入
 from models.code_base.model.CBraMod import CBraMod as CBraModModel
 
 class ConfigWrapper:
@@ -18,36 +16,39 @@ class ConfigWrapper:
 class CBraMod(nn.Module):
     def __init__(self, config_dict):
         super().__init__()
-        #  将 YAML 传进来的 dict 转换为对象
+        # 将 YAML 传进来的 dict 转换为对象
         self.configs = ConfigWrapper(config_dict['model'])
+        device = config_dict["train"]["device"]
         
-        # 实例化iTransformer
-        self.model = CBraModModel(  in_dim  = self.configs.in_dim, 
-                                    out_dim = self.configs.out_dim, 
-                                    d_model = self.configs.d_model, 
-                                    dim_feedforward = self.configs.dim_feedforward, 
-                                    n_layer = self.configs.n_layer,
-                                    nhead   = self.configs.nhead
-                                    ).to(config_dict["train"]["device"])
-
+        # 实例化骨干网络
+        self.model = CBraModModel(  
+            in_dim = self.configs.in_dim, 
+            out_dim = self.configs.out_dim, 
+            d_model = self.configs.d_model, 
+            dim_feedforward = self.configs.dim_feedforward, 
+            n_layer = self.configs.n_layer,
+            nhead   = self.configs.nhead
+        )
+        
         c = self.configs.ch_num
-        s = self.configs.patch_num
-        p = self.configs.patch_size
+        T_all = self.configs.T_all  
         self.class_num = self.configs.num_classes
 
+        #  [B, C, T_all] - [B, C * T_all] 
         self.fc = nn.Sequential(
-                                Rearrange('b c p -> b (c p)'),
-                                nn.Linear(c*p , self.class_num),
-                            ).to(config_dict["train"]["device"])
+            nn.Flatten(),
+            nn.Linear(c * T_all, self.class_num),
+        )
         
-        # 加载权重
-        self.weight_path = config_dict['model']['weight_path']
+        # 冻结与权重加载逻辑
+        self.weight_path = self.configs.weight_path
 
         if self.weight_path and os.path.exists(self.weight_path):
-            ckpt = torch.load(self.weight_path, map_location = config_dict["train"]["device"], weights_only=True)
+            ckpt = torch.load(self.weight_path, map_location=device, weights_only=True)
             self.model.load_state_dict(ckpt, strict=False)
             print("✅ Pretrained Backbone Weights Loaded.")
 
+        # 冻结骨干网络
         for p in self.model.parameters():
             p.requires_grad = False
 
@@ -56,14 +57,26 @@ class CBraMod(nn.Module):
 
 
     def forward(self, x):
+        """
+        统一的动态拆分前向传播
+        输入 x: [B, C, T_all]
+        """
         B, C, T_all = x.shape
-        x = x.reshape(4, -1, C, T_all).permute(1,2,0,3)
-        if x.dim() == 3:
-            x = x.unsqueeze(2) # [1, 62, 800] -> [1, 62, 1, 800]
+        
+        assert T_all % 200 == 0, f"[Error] CBraMod 要求时间长度必须是 200 的整数倍，当前数据长度为 {T_all}"
+        
+        # patch_num
+        patch_num = T_all // 200
+        
+        # [B, C, T_all] -> [B, C, patch_num, 200]
+        x = x.reshape(B, C, patch_num, 200)
 
+        # [B, C, patch_num, 200]
         z = self.model(x)
 
-        z = z.permute(2,0,1,3).reshape(B, C, -1)
+        # [B, C, patch_num, 200] -> [B, C, T_all]
+        z = z.reshape(B, C, -1)
 
         logits = self.fc(z)
+        
         return logits

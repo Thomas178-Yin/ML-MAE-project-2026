@@ -10,11 +10,11 @@ train:
   early_stop_min_delta: 0.00001
 
 model:
-  ch_num: 20
+  ch_num: 22
   in_dim: 200    
   out_dim: 200      
   dim_feedforward: 800
-  num_classes: 2        # 分类类别数
+  num_classes: 4        # 分类类别数
   d_model: 200      
   n_layer: 12         
   nhead: 8

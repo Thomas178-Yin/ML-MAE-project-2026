@@ -51,6 +51,7 @@ def get_dataloader(args, batch_size, seed):
     print(f"  train X: {tuple(train_data.x.shape)}, y: {tuple(train_data.y.shape)}")
     print(f"  val   X: {tuple(val_data.x.shape)}, y: {tuple(val_data.y.shape)}")
     print(f"  test  X: {tuple(test_data.x.shape)}")
+    # print(f"y label :  {tuple(val_data.y)}")
 
     train_loader = DataLoader(train_data,   batch_size = batch_size,    shuffle=True)
     val_loader = DataLoader(val_data,       batch_size = batch_size,    shuffle=False)

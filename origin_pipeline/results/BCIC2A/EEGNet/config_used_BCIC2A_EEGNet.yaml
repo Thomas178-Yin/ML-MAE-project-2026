@@ -1,0 +1,18 @@
+dataset:
+  batch_size: 32
+model:
+  chans: 22
+  d: 2
+  dp: 0.5
+  f1: 8
+  num_classes: 4
+  pk1: 4
+  pk2: 8
+  time_point: 800
+train:
+  device: cuda:0
+  early_stop_min_delta: 1.0e-05
+  early_stop_patience: 15
+  epochs: 100
+  lr: 0.0001
+  weight_decay: 0.05

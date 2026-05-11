@@ -1,5 +1,6 @@
 import os
 import random
+import pandas as pd
 import sys
 
 import numpy as np
@@ -97,13 +98,112 @@ def path_solution(path):
     utils_path = os.path.join(BASE_DIR, "models", "code_base", "utils")
     sys.path.append(models_path)
 
+#——————————————————————————————————————————————————————
+# 针对数据集的参数改变
+#——————————————————————————————————————————————————————
+def config_fix(config, dataset_name, model_name):
+    """
+    根据选择的数据集自动对齐不同模型的 config 参数键值
+    """
+    
+    # ==========================================
+    # 数据集数据
+    # ==========================================
+    dataset_meta = {
+        'MDD':     {'channels': 20, 'time': 200,  'classes': 2},
+        'BCIC2A':  {'channels': 22, 'time': 800,  'classes': 4},
+        'CHINESE': {'channels': 22, 'time': 200,  'classes': 2},
+        'SEED':    {'channels': 62, 'time': 400,  'classes': 3},
+        'SLEEP':   {'channels': 6,  'time': 6000, 'classes': 5}
+    }
+
+    if dataset_name not in dataset_meta:
+        raise ValueError(f"Unknown dataset: {dataset_name}")
+
+    meta = dataset_meta[dataset_name]
+
+    # ==========================================
+    # 参数映射
+    # ==========================================
+    key_mapping = {
+        'EEGNet':       ('chans',          'time_point',  'num_classes'),
+        'EEGGRU':       ('input_channels', 'time_points', 'num_classes'),
+        'CBraMod':      ('ch_num',         'in_dim',      'num_classes'),
+        'iTransformer': ('enc_in',         'seq_len',     'num_class'),
+        'PatchTST':     ('enc_in',         'seq_len',     'num_class'),
+        'TimesNet':     ('enc_in',         'seq_len',     'num_class')
+    }
+
+    # 特殊处理 CBraMod
+    if model_name == 'CBraMod':
+        config['model']['ch_num'] = meta['channels']
+        config['model']['num_classes'] = meta['classes']
+        
+        # patch_size 200
+        config['model']['in_dim'] = 200
+        config['model']['patch_size'] = 200
+        
+        # patch_num
+        config['model']['patch_num'] = meta['time'] // 200
+        # 总时间长度
+        config['model']['T_all'] = meta['time'] 
+        
+        print(f"[*] CBraMod detected: Auto-calculated patch_num={config['model']['patch_num']} (Total Time={meta['time']}).")
+    
+    # 常规模型处理
+    elif model_name in key_mapping:
+        ch_key, time_key, cls_key = key_mapping[model_name]
+        config['model'][ch_key] = meta['channels']
+        config['model'][cls_key] = meta['classes']
+        config['model'][time_key] = meta['time']
+        
+        if model_name == 'TimesNet' and 'c_out' in config['model']:
+            config['model']['c_out'] = meta['classes']
+            
+        print(f"[-] Config auto-fixed for {dataset_name} + {model_name}: "
+              f"Channels={meta['channels']}, Time={meta['time']}, Classes={meta['classes']}")
+    else:
+        raise ValueError(f"Unknown model: {model_name}")
+    
+    return config
 
 
 
+#——————————————————————————————————————————————————————
+# 保存结果
+#——————————————————————————————————————————————————————
+def val_matrix(val_acc, model_name, dataset_name, model_save_dir):
+    """
+    实验结果汇总矩阵
+    """
+    # 保存路径
+    results_root = os.path.dirname(os.path.dirname(model_save_dir))
+    matrix_path = os.path.join(results_root, "total_val_acc_matrix.csv")
+    
 
+    if os.path.exists(matrix_path):
+        # 读取旧表格
+        df = pd.read_csv(matrix_path, index_col=0)
+    else:
+        # 创建空表
+        df = pd.DataFrame()
 
-
-
+    # 更新
+    df.at[dataset_name, model_name] = val_acc
+    
+    # 排序（可选）
+    df = df.sort_index(axis=0).sort_index(axis=1)
+    
+    # 保存
+    df.index.name = "Dataset/Model"
+    df.to_csv(matrix_path)
+    
+    # 打印结果
+    print("\n" + "="*50)
+    print(f"📊 Global Result Matrix Updated (Saved to: {matrix_path})")
+    print("-" * 50)
+    print(df)
+    print("="*50 + "\n")
 
 
 
