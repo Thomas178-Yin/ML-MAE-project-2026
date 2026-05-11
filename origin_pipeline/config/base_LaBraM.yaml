@@ -1,0 +1,25 @@
+dataset:
+  batch_size: 32
+
+train:
+  device: "cuda:0"
+  lr: 0.0001
+  weight_decay: 0.0001
+  epochs: 100
+  early_stop_patience: 15
+  early_stop_min_delta: 0.00001
+
+model:
+  # 基础参数 (会被 config_fix 自动覆盖)
+  ch_num: 20
+  num_classes: 2
+  
+  # LaBraM 专属参数
+  patch_size: 200         # 底层要求，固定 200
+  d_model: 200            # Transformer 维度
+  n_layer: 12             # 层数
+  nhead: 8                # 注意力头数
+  dim_feedforward: 800    # FFN 维度 (d_model * 4)
+  
+  # 预训练权重路径 
+  weight_path: "Y:/xihua/2603/EEG/checkpoints/labram-base.pth"

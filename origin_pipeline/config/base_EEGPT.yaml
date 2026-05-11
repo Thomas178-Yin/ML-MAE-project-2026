@@ -1,0 +1,37 @@
+dataset:
+  batch_size: 32
+
+train:
+  device: "cuda:0"
+  lr: 0.0001
+  weight_decay: 0.0001
+  epochs: 100
+  early_stop_patience: 15
+  early_stop_min_delta: 0.00001
+
+model:
+  in_channels: 22                 # 将被 config_fix 覆盖
+  desired_time_len: 1024          # 将被 config_fix 覆盖
+  img_size: [19, 1024]            # 将被 config_fix 覆盖
+  
+  use_channels_names: [
+      'FP1', 'FP2', 'F7', 'F3', 'FZ', 'F4', 'F8', 
+      'T7', 'C3', 'CZ', 'C4', 'T8', 'P7', 'P3', 
+      'PZ', 'P4', 'P8', 'O1', 'O2'
+  ]
+  use_chan_conv: true             # 是否进行通道映射
+  use_predictor: false            
+  use_mean_pooling: true  
+  embed_num: 4        
+  patch_size: 64  
+  depth: 4        
+  num_heads: 8  
+  use_freeze_encoder: false       
+  use_freeze_reconstructor: true  
+  enc_drop_path_rate: 0.1         
+  max_norm_head: 1.0              
+
+  weight_path: "Y:/xihua/2603/EEG/checkpoints/eegpt_mcae_58chs_4s_large4E.ckpt"
+
+  num_classes: 2                   
+  embed_dim: 512                  
