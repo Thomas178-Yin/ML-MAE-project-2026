@@ -26,14 +26,14 @@ from train import train, test
 # 选择数据集
 #——————————————————
 DATASET_LIST = ['MDD', 'BCIC2A', 'CHINESE', 'SEED', 'SLEEP']
-dataset_id = 3
+dataset_id = 0
 dataset_name = DATASET_LIST[dataset_id]
 
 MODEL_LIST = [EEGNet, EEGGRU, iTransformer, PatchTST, TimesNet, CBraMod, LaBraM, EEGPT]
 #——————————————————
 # 选择模型
 #——————————————————
-model_id = -2
+model_id = -3
 model = MODEL_LIST[model_id]
 model_name = MODEL_LIST[model_id].__name__
 print(model_name)
@@ -42,13 +42,13 @@ print(model_name)
 #——————————————————
 seed = 42
 
-DATASET_PATH = f"E:/G2/machine_learning/code/12_RNN/course_project/{dataset_name}"
+DATASET_PATH = f"/mnt/dataset4/xihua/2605/ML/course_project/{dataset_name}"
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--data_dir', type=str, default=DATASET_PATH , help='data_dir')
 
-parser.add_argument('--model_save_dir', type=str, default="E:/G2/machine_learning/team_Project/ML_MAE_project_2026/origin_pipeline/results/%s/%s" % (dataset_name, model_name), help='model save dir')
+parser.add_argument('--model_save_dir', type=str, default="origin_pipeline/results/%s/%s" % (dataset_name, model_name), help='model save dir')
 args = parser.parse_args()
 print(args)
 
@@ -68,6 +68,7 @@ with open(config_path, "r", encoding='utf-8') as f:
 
 # 针对数据集修复config参数
 config = config_fix(config, dataset_name, model_name)
+config['train']['device'] = input("device used:")
 
 # 保存yaml文件到模型保存路径 方便查看
 save_config_path = os.path.join(args.model_save_dir, f"config_used_{dataset_name}_{model_name}.yaml")

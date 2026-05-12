@@ -9,7 +9,7 @@ class ConfigWrapper:
 class EEGGRU(nn.Module):
     def __init__(self, config_dict):
         super(EEGGRU, self).__init__()
-        
+        self.config_dict = config_dict
         # 1. 解析配置
         conf = ConfigWrapper(config_dict['model'])
         self.hidden_size = conf.hidden_size
@@ -54,3 +54,21 @@ class EEGGRU(nn.Module):
         # 分类输出
         logits = self.fc(last_out)
         return logits
+    
+    def return_training_parameters(self):
+        training_parameters = []
+        training_parameters.append(
+                    {
+                "params": self.gru.parameters(),
+                "lr": self.config_dict['train']['lr'],
+                "weight_decay": self.config_dict['train'].get('weight_decay', 1.0e-4)
+            }
+        )
+        training_parameters.append(
+                    {
+                "params": self.fc.parameters(),
+                "lr": self.config_dict['train']['lr'],
+                "weight_decay": self.config_dict['train'].get('weight_decay', 1.0e-4)
+            }
+        )
+        return training_parameters

@@ -22,4 +22,4 @@ model:
   dim_feedforward: 800    # FFN 维度 (d_model * 4)
   
   # 预训练权重路径 
-  weight_path: "Y:/xihua/2603/EEG/checkpoints/labram-base.pth"
+  weight_path: "/mnt/dataset4/xihua/2603/EEG/checkpoints/labram-base.pth"

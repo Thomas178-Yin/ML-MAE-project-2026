@@ -11,6 +11,7 @@ class ConfigWrapper:
 class TimesNet(nn.Module):
     def __init__(self, config_dict):
         super().__init__()
+        self.config_dict = config_dict
         self.configs = ConfigWrapper(config_dict['model'])
         self.model = TimesNetModel(self.configs)
 
@@ -26,3 +27,15 @@ class TimesNet(nn.Module):
 
         # 调用 TimesNet
         return self.model(x, x_mark_mask, x_dec=None, x_mark_dec=None)
+    
+    def return_training_parameters(self):
+        training_parameters = []
+        training_parameters.append(
+                    {
+                "params": self.model.parameters(),
+                "lr": self.config_dict['train']['lr'],
+                "weight_decay": self.config_dict['train'].get('weight_decay', 1.0e-4)
+            }
+        )
+        
+        return training_parameters

@@ -5,7 +5,7 @@ from tqdm import tqdm
 import torch.optim as optim
 from datetime import datetime
 from torch.utils.tensorboard import SummaryWriter
-from util import compute_metrics, init_model
+from util import compute_metrics, init_model, set_seed
 
 
 def train(  model,
@@ -20,15 +20,15 @@ def train(  model,
     writer = SummaryWriter(log_dir=run_dir)
 
     device = config['train']['device']
-
+    set_seed(seed)
+    
     model = init_model(model, config)
 
     # for p in model.parameters():
     #         p.requires_grad = True
 
     optimizer = optim.Adam(
-                        list(model.parameters()),
-                        lr=config['train']['lr'],
+                        model.return_training_parameters(),
                         weight_decay=config['train'].get('weight_decay', 1.0e-4)
                         )
 

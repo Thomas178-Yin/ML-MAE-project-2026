@@ -31,7 +31,7 @@ model:
   enc_drop_path_rate: 0.1         
   max_norm_head: 1.0              
 
-  weight_path: "Y:/xihua/2603/EEG/checkpoints/eegpt_mcae_58chs_4s_large4E.ckpt"
+  weight_path: "/mnt/dataset4/xihua/2603/EEG/checkpoints/eegpt_mcae_58chs_4s_large4E.ckpt"
 
   num_classes: 2                   
   embed_dim: 512                  
