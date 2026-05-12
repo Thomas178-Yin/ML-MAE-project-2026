@@ -1,5 +1,6 @@
 /origin_pipeline/results
 /origin_pipeline/log
+/tzx_pipeline
 
 # Python 缓存
 __pycache__/
