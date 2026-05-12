@@ -33,7 +33,7 @@ MODEL_LIST = [EEGNet, EEGGRU, iTransformer, PatchTST, TimesNet, CBraMod, LaBraM,
 #——————————————————
 # 选择模型
 #——————————————————
-model_id = -3
+model_id = -2
 model = MODEL_LIST[model_id]
 model_name = MODEL_LIST[model_id].__name__
 print(model_name)

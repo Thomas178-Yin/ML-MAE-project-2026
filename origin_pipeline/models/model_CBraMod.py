@@ -87,7 +87,7 @@ class CBraMod(nn.Module):
         # training_parameters.append(
         #             {
         #         "params": self.model.parameters(),
-        #         "lr": self.config_dict['train']['lr'] * 0.1,
+        #         "lr": self.config_dict['train']['lr'] * 0.05,
         #         "weight_decay": self.config_dict['train'].get('weight_decay', 1.0e-4)
         #     }
         # )
