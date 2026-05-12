@@ -15,6 +15,7 @@ class ConfigWrapper:
 class LaBraM(nn.Module):
     def __init__(self, config_dict):
         super().__init__()
+        self.config_dict = config_dict
         self.configs = ConfigWrapper(config_dict['model'])
         self.device = config_dict["train"]["device"]
 
@@ -97,3 +98,23 @@ class LaBraM(nn.Module):
         feats = self.forward_features(x)  
         logits = self.classifier(feats) 
         return logits
+    
+    def return_training_parameters(self):
+        training_parameters = []
+        # training_parameters.append(
+        #             {
+        #         "params": self.target_encoder.parameters(),
+        #         "lr": self.config_dict['train']['lr'] * 0.1,
+        #         "weight_decay": self.config_dict['train'].get('weight_decay', 1.0e-4)
+        #     }
+        # )
+
+        training_parameters.append(
+                    {
+                "params": self.classifier.parameters(),
+                "lr": self.config_dict['train']['lr'],
+                "weight_decay": self.config_dict['train'].get('weight_decay', 1.0e-4)
+            }
+        )
+        
+        return training_parameters

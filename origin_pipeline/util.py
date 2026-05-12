@@ -61,6 +61,7 @@ def compute_metrics(y_true, y_pred_logits):
 def init_model(model_class, config):
     if model_class.__name__ == "EEGNet":
         return model_class(
+            config_dict = config,
             chans=config['model']['chans'],
             num_classes=config['model']['num_classes'],
             time_point=config['model']['time_point']

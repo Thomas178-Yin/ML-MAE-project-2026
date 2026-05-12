@@ -15,6 +15,7 @@ class ConfigWrapper:
 class iTransformer(nn.Module):
     def __init__(self, config_dict):
         super().__init__()
+        self.config_dict = config_dict
         #  将 YAML 传进来的 dict 转换为对象
         self.configs = ConfigWrapper(config_dict['model'])
         
@@ -61,3 +62,15 @@ class iTransformer(nn.Module):
         output = self.model(x_enc, x_mark_enc, x_dec, x_mark_dec)
             
         return output
+    
+    def return_training_parameters(self):
+        training_parameters = []
+        training_parameters.append(
+                    {
+                "params": self.model.parameters(),
+                "lr": self.config_dict['train']['lr'],
+                "weight_decay": self.config_dict['train'].get('weight_decay', 1.0e-4)
+            }
+        )
+        
+        return training_parameters

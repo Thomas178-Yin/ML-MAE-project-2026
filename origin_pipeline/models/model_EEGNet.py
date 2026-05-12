@@ -2,8 +2,10 @@ import torch
 import torch.nn as nn
 
 class EEGNet(nn.Module):  # EEGNet-8,2
-    def __init__(self, chans, num_classes=2, time_point=200,f1=8, d=2, pk1=4, pk2=8, dp=0.5, max_norm1=1,norm=torch.nn.Identity()):
+    def __init__(self, chans, config_dict, num_classes=2, time_point=200,f1=8, d=2, pk1=4, pk2=8, dp=0.5, max_norm1=1,norm=torch.nn.Identity()):
         super(EEGNet, self).__init__()
+        self.config_dict = config_dict
+
         f2 = f1 * d
         self.block1 = nn.Sequential(
             nn.Conv2d(1, f1, (1, 64), padding=(0,32), bias=False),
@@ -60,3 +62,35 @@ class EEGNet(nn.Module):  # EEGNet-8,2
 
         out = self.classifier(features)
         return out
+
+    def return_training_parameters(self):
+        training_parameters = []
+        training_parameters.append(
+                    {
+                "params": self.block1.parameters(),
+                "lr": self.config_dict['train']['lr'],
+                "weight_decay": self.config_dict['train'].get('weight_decay', 1.0e-4)
+            }
+        )
+        training_parameters.append(
+                    {
+                "params": self.block2.parameters(),
+                "lr": self.config_dict['train']['lr'],
+                "weight_decay": self.config_dict['train'].get('weight_decay', 1.0e-4)
+            }
+        )
+        training_parameters.append(
+                    {
+                "params": self.block3.parameters(),
+                "lr": self.config_dict['train']['lr'],
+                "weight_decay": self.config_dict['train'].get('weight_decay', 1.0e-4)
+            }
+        )
+        training_parameters.append(
+                    {
+                "params": self.classifier.parameters(),
+                "lr": self.config_dict['train']['lr'],
+                "weight_decay": self.config_dict['train'].get('weight_decay', 1.0e-4)
+            }
+        )
+        return training_parameters

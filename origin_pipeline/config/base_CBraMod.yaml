@@ -20,4 +20,4 @@ model:
   nhead: 8
   patch_num: 4
   patch_size: 200
-  weight_path: "Y:/xihua/2603/EEG/checkpoints/CBraMod_pretrained_weights.pth"
+  weight_path: "/mnt/dataset4/xihua/2603/EEG/checkpoints/CBraMod_pretrained_weights.pth"
