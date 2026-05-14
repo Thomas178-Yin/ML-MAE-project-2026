@@ -80,10 +80,11 @@ class EEGPT(nn.Module):
         # 5. 冻结策略 
         if getattr(self.configs, 'use_freeze_encoder', False):
             for p in self.target_encoder.parameters():
-                p.requires_grad = False
+                p.requires_grad = True
+                print(p.requires_grad)
 
     def _temporal_interpolation(self, x):
-        """完全使用 GPU 原生算子执行插值"""
+        """执行插值"""
         # x shape: [B, C, T]
         if getattr(self.configs, 'use_mean_pooling', False):
             x = x - torch.mean(x, dim=-1, keepdim=True)
@@ -109,13 +110,13 @@ class EEGPT(nn.Module):
     
     def return_training_parameters(self):
         training_parameters = []
-        # training_parameters.append(
-        #             {
-        #         "params": self.target_encoder.parameters(),
-        #         "lr": self.config_dict['train']['lr'] * 0.1,
-        #         "weight_decay": self.config_dict['train'].get('weight_decay', 1.0e-4)
-        #     }
-        # )
+        training_parameters.append(
+                    {
+                "params": self.target_encoder.parameters(),
+                "lr": self.config_dict['train']['lr'] * 0.05,
+                "weight_decay": self.config_dict['train'].get('weight_decay', 1.0e-4)
+            }
+        )
         training_parameters.append(
                     {
                 "params": self.classifier.parameters(),

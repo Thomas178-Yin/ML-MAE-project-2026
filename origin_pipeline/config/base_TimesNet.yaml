@@ -22,8 +22,8 @@ model:
   e_layers: 2                  # TimesBlock 层数
   d_model: 64                  
   d_ff: 64                     
-  top_k: 5                     # FFT 提取的最高频周期个数
-  num_kernels: 6               # Inception block 内部卷积核数量
+  top_k: 6                     # FFT 提取的最高频周期个数
+  num_kernels: 8               # Inception block 内部卷积核数量
   
   # Embedding 参数
   embed: 'timeF'

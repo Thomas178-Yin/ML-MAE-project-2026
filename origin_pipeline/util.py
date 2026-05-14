@@ -1,3 +1,4 @@
+import json
 import os
 import random
 import pandas as pd
@@ -198,39 +199,145 @@ def config_fix(config, dataset_name, model_name):
 #——————————————————————————————————————————————————————
 # 保存结果
 #——————————————————————————————————————————————————————
-def val_matrix(val_acc, model_name, dataset_name, model_save_dir):
+def val_matrix(val_acc, model_name, dataset_name, model_save_dir, config):
     """
-    实验结果汇总矩阵
+    更新实验结果汇总矩阵，并自动保存历史最优配置参数
     """
-    # 保存路径
+    # 路径计算：回退两级到 results 根目录 (results/Dataset/Model -> results)
     results_root = os.path.dirname(os.path.dirname(model_save_dir))
     matrix_path = os.path.join(results_root, "total_val_acc_matrix.csv")
+    # 最优配置文件路径
+    best_config_path = os.path.join(results_root, "best_configs.json")
     
-
+    # 1. 加载或初始化准确率矩阵 (CSV)
     if os.path.exists(matrix_path):
-        # 读取旧表格
         df = pd.read_csv(matrix_path, index_col=0)
     else:
-        # 创建空表
         df = pd.DataFrame()
 
-    # 更新
-    df.at[dataset_name, model_name] = val_acc
-    
-    # 排序（可选）
-    df = df.sort_index(axis=0).sort_index(axis=1)
-    
-    # 保存
-    df.index.name = "Dataset/Model"
-    df.to_csv(matrix_path)
-    
-    # 打印结果
-    print("\n" + "="*50)
-    print(f"📊 Global Result Matrix Updated (Saved to: {matrix_path})")
-    print("-" * 50)
-    print(df)
-    print("="*50 + "\n")
+    # 2. 加载或初始化最优参数字典 (JSON)
+    if os.path.exists(best_config_path):
+        with open(best_config_path, 'r', encoding='utf-8') as f:
+            best_configs = json.load(f)
+    else:
+        best_configs = {}
 
+    # 3. 比较逻辑：获取该 (数据集, 模型) 的当前最高准确率
+    current_best = 0.0
+    if dataset_name in df.index and model_name in df.columns:
+        val = df.at[dataset_name, model_name]
+        if pd.notna(val):
+            current_best = float(val)
+
+    # 4. 如果当前准确率更高，则执行更新
+    if val_acc > current_best:
+        # --- 更新矩阵 ---
+        df.at[dataset_name, model_name] = val_acc
+        df = df.sort_index(axis=0).sort_index(axis=1)
+        df.index.name = "Dataset/Model"
+        df.to_csv(matrix_path)
+
+        # --- 更新最优参数字典 ---
+        if dataset_name not in best_configs:
+            best_configs[dataset_name] = {}
+        
+        # 以字典形式存储该模型的最优参数
+        best_configs[dataset_name][model_name] = {
+            "best_acc": float(val_acc),
+            "params": {
+                "model": config.get("model", {}),
+                "train": config.get("train", {})
+            }
+        }
+        
+        # 写入 JSON 文件，保持缩进方便阅读
+        with open(best_config_path, 'w', encoding='utf-8') as f:
+            json.dump(best_configs, f, indent=4, ensure_ascii=False)
+        
+        print(f"\n[🔥] 发现新纪录! {dataset_name}-{model_name} 已更新最优参数到 best_configs.json")
+    else:
+        print(f"\n[s] 当前结果 {val_acc:.4f} 未超过历史最高值 {current_best:.4f}，跳过参数备份。")
+
+    # 5. 打印汇总矩阵预览
+    print("\n" + "="*65)
+    print(f"📊 全局最优结果矩阵 (汇总于: {matrix_path})")
+    print("-" * 65)
+    print(df)
+    print("="*65 + "\n")
+
+#——————————————————————————————————————————————————————
+# 数值处理
+#——————————————————————————————————————————————————————
+def normalize_data(tensor_x, dataset_name, use_zscore=False):
+    """
+    根据不同数据集的原始数据分布，进行数据缩放或 Z-score 标准化。
+    目标：将数据值限制在大致 [-1, 1] 之间，均值约为 0。
+    
+    【各数据集原始统计参考 (Raw Data Statistics)】
+    ======================================================================
+    MDD:
+      Train   | Max:  475.80 | Min:  -507.35 | Mean:   0.0597 | Std:  14.63
+      Val     | Max:  467.88 | Min:  -514.36 | Mean:   0.0134 | Std:  13.95
+      Test    | Max:  587.95 | Min:  -583.81 | Mean:   0.0085 | Std:  12.76
+      -> 建议: 极值约 ±600，除以 500.0
+
+    BCIC2A:
+      Train   | Max:  0.1221 | Min:  -0.1160 | Mean:   0.0014 | Std: 0.0130
+      Val     | Max:  0.1171 | Min:  -0.1048 | Mean:   0.0013 | Std: 0.0134
+      Test    | Max:  0.1059 | Min:  -0.1034 | Mean:   0.0008 | Std: 0.0121
+      -> 建议: 极值约 ±0.12，乘以 10.0
+
+    CHINESE:
+      Train   | Max: 1821.59 | Min: -19851.7 | Mean:  -4.6865 | Std: 213.51
+      Val     | Max: 7102.17 | Min: -11412.5 | Mean:  -7.2075 | Std: 248.64
+      Test    | Max:     nan | Min:      nan | Mean:      nan | Std:    nan
+      -> 建议: 存在极端的单侧负向离群点，方差较大。除以 200.0。并必须清理 NaN。
+
+    SEED:
+      Train   | Max:  205.91 | Min:  -192.42 | Mean:   0.0000 | Std:   5.53
+      Val     | Max:  179.92 | Min:  -198.99 | Mean:   0.0000 | Std:   5.46
+      Test    | Max:  202.14 | Min:  -193.47 | Mean:   0.0000 | Std:   5.51
+      -> 建议: 极值约 ±200，除以 200.0
+
+    SLEEP:
+      Train   | Max: 5249.64 | Min: -4512.75 | Mean:  -0.0009 | Std:  17.00
+      Val     | Max: 5616.77 | Min: -5637.30 | Mean:   0.0068 | Std:  21.33
+      Test    | Max: 3309.71 | Min: -1726.25 | Mean:   0.0043 | Std:  14.56
+      -> 建议: 极值约 ±5600，除以 1000.0 压制大值
+    ======================================================================
+    """
+    
+    # 将所有 NaN 替换为 0，防止 CHINESE 测试集污染后续计算
+    tensor_x = torch.nan_to_num(tensor_x, nan=0.0)
+
+    # 直接使用 Z-score 标准化
+    if use_zscore:
+        mean_val = tensor_x.mean()
+        std_val = tensor_x.std()
+        if std_val > 1e-8:
+            return (tensor_x - mean_val) / std_val
+        return tensor_x
+
+    # 根据数据集自行硬编码调整 ----自己调整
+    if dataset_name == 'MDD':
+        tensor_x = tensor_x #/ 10.0
+        
+    elif dataset_name == 'BCIC2A':
+        tensor_x = tensor_x #* 10.0
+        
+    elif dataset_name == 'CHINESE':
+        # 考虑到 CHINESE 存在极端的 -19851，如果不加限制，正常信号会被压得太小
+        # 这里除以 200，并对极端离群值进行截断(Clamp)
+        tensor_x = tensor_x #/ 200.0
+        # tensor_x = torch.clamp(tensor_x, min=-5.0, max=5.0) 
+        
+    elif dataset_name == 'SEED':
+        tensor_x = tensor_x #/ 100.0
+        
+    elif dataset_name == 'SLEEP':
+        tensor_x = tensor_x #/ 100.0
+
+    return tensor_x
 
 
 
