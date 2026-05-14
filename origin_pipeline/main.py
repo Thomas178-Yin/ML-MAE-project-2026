@@ -26,14 +26,14 @@ from train import train, test
 # 选择数据集
 #——————————————————
 DATASET_LIST = ['MDD', 'BCIC2A', 'CHINESE', 'SEED', 'SLEEP']
-dataset_id = 0
+dataset_id = 3
 dataset_name = DATASET_LIST[dataset_id]
 
 MODEL_LIST = [EEGNet, EEGGRU, iTransformer, PatchTST, TimesNet, CBraMod, LaBraM, EEGPT]
 #——————————————————
 # 选择模型
 #——————————————————
-model_id = -3
+model_id = 4
 model = MODEL_LIST[model_id]
 model_name = MODEL_LIST[model_id].__name__
 print(model_name)
@@ -84,7 +84,7 @@ print(f"config save to: {save_config_path}")
 # 固定种子
 set_seed(seed = seed)
 
-dataloader_train, dataloader_val, dataloader_test = get_dataloader(args = args, batch_size = config['dataset']['batch_size'], seed = seed)
+dataloader_train, dataloader_val, dataloader_test = get_dataloader(args = args, batch_size = config['dataset']['batch_size'], seed = seed, dataset_name = dataset_name)
 
 print("Num batches:")
 print(f"  Train: {len(dataloader_train)}")
@@ -128,5 +128,8 @@ val_matrix(
     val_acc = best_val_acc,
     model_name = model_name,
     dataset_name = dataset_name,
-    model_save_dir = args.model_save_dir
+    model_save_dir = args.model_save_dir,
+    config = config
 )
+
+print(f"[✔] 结束！！！")
